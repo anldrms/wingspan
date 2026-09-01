@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Nav from "@/components/Nav";
 import { AIRCRAFT } from "@/lib/aircraft";
+import { siteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: {
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
   },
   description:
     `${AIRCRAFT.length} plan-view aircraft silhouettes drawn from real dimensions. Compare an A380 with a Cessna 172 at true scale, morph between types, and download every silhouette as SVG.`,
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://wingspan.vercel.app"),
+  metadataBase: new URL(siteUrl()),
   openGraph: {
     title: "Wingspan",
     description: "True-to-scale aircraft silhouettes: an icon library and a size-comparison playground.",

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Silhouette from "@/components/Silhouette";
 import CopyButton from "@/components/CopyButton";
 import { AIRCRAFT, CATEGORY_LABELS, getAircraft } from "@/lib/aircraft";
+import { siteUrl } from "@/lib/site";
 
 type Params = { slug: string };
 
@@ -26,7 +27,7 @@ export default async function AircraftPage({ params }: { params: Promise<Params>
   if (!a) notFound();
 
   const svgUrl = `/api/svg/${a.slug}`;
-  const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://wingspan.vercel.app";
+  const site = siteUrl();
   const embed = `<img src="${site}${svgUrl}?primary=0f172a&secondary=64748b&width=320" alt="${a.manufacturer} ${a.name} silhouette" />`;
 
   // Nearest neighbours by wingspan make for interesting comparisons, plus the two extremes.
