@@ -1,67 +1,83 @@
 import Link from "next/link";
 import Gallery from "@/components/Gallery";
 import MorphHero from "@/components/MorphHero";
-import { AIRCRAFT } from "@/lib/aircraft";
+import { AIRCRAFT, FAMILIES } from "@/lib/aircraft";
+import { LIVERIES } from "@/lib/liveries";
 
-const HERO_CYCLE = ["a380", "cessna-172", "concorde", "747-8", "atr72-600", "f-22", "an-225", "sr-71", "a320neo", "dc-3"];
+const HERO_CYCLE = ["a380", "cessna-172", "concorde", "747-8", "atr72-600", "f-22", "an-225", "sr-71", "a321neo", "dc-3", "777-9", "md-82"];
 
 export default function Home() {
-  const cycle = HERO_CYCLE.map((slug) => AIRCRAFT.find((a) => a.slug === slug)!).filter(Boolean);
+  const cycle = HERO_CYCLE.map((slug) => AIRCRAFT.find((a) => a.slug === slug)).filter((a): a is NonNullable<typeof a> => !!a);
+  const spans = AIRCRAFT.map((a) => a.geometry.wingspan);
+  const years = AIRCRAFT.map((a) => a.firstFlight).filter((y): y is number => !!y);
+
   return (
     <>
-      <section className="container hero">
-        <div>
+      <section className="wrap hero">
+        <div className="hero-copy">
+          <div className="label">Plan-view atlas · true scale</div>
           <h1>
-            Every aircraft, <em>to scale.</em>
+            Every aircraft,
+            <br />
+            <em>to scale.</em>
           </h1>
-          <p className="lede">
-            {AIRCRAFT.length} plan-view silhouettes generated from real dimensions. Overlay an A380 on a Cessna 172, morph a
-            Concorde into a 747, and drop any of them into your project as a two-tone SVG.
+          <p>
+            {AIRCRAFT.length} silhouettes across {FAMILIES.length} families, generated from published dimensions rather than drawn by hand. Overlay an
+            A380 on a Cessna 172, walk around them in 3D, morph a Concorde into a 747, and export any of them as a two-tone SVG in your
+            airline&rsquo;s colours.
           </p>
           <div className="hero-actions">
-            <Link className="btn primary" href="/compare?ids=a380,cessna-172">
+            <Link className="btn solid" href="/compare?ids=a380,cessna-172">
               Compare sizes
             </Link>
-            <a className="btn" href="#gallery">
-              Browse silhouettes
+            <a className="btn" href="#catalogue">
+              Browse the catalogue
             </a>
+            <Link className="btn" href="/liveries">
+              Liveries
+            </Link>
           </div>
         </div>
         <MorphHero aircraft={cycle} />
       </section>
 
-      <section className="container section" style={{ paddingTop: 8 }}>
-        <div className="features">
-          <div className="feature">
-            <h3>Metres in, SVG out</h3>
-            <p>
-              Each silhouette is built from a handful of published measurements — wingspan, length, fuselage width, sweep —
-              so proportions between aircraft are real, not eyeballed.
-            </p>
+      <section className="wrap">
+        <div className="strip">
+          <div>
+            <div className="label">Aircraft</div>
+            <div className="v num">
+              {AIRCRAFT.length}
+              <small>types</small>
+            </div>
           </div>
-          <div className="feature">
-            <h3>Morphable by design</h3>
-            <p>
-              All silhouettes share one point topology. Any type interpolates into any other with plain linear math, no
-              path-matching library required.
-            </p>
+          <div>
+            <div className="label">Families</div>
+            <div className="v num">
+              {FAMILIES.length}
+              <small>lineages</small>
+            </div>
           </div>
-          <div className="feature">
-            <h3>Two-tone, CSS-only</h3>
-            <p>
-              Fuselage and wings are separate paths coloured by CSS variables. Hover animations are pure CSS; the SVG API
-              serves any colour you ask for.
-            </p>
+          <div>
+            <div className="label">Wingspan range</div>
+            <div className="v num">
+              {Math.min(...spans)}–{Math.max(...spans)}
+              <small>m</small>
+            </div>
+          </div>
+          <div>
+            <div className="label">First flights</div>
+            <div className="v num">
+              {Math.min(...years)}–{Math.max(...years)}
+              <small>· {LIVERIES.length - 3} liveries</small>
+            </div>
           </div>
         </div>
       </section>
 
-      <section id="gallery" className="container section">
+      <section id="catalogue" className="wrap section">
         <div className="section-head">
-          <div>
-            <h2>Silhouettes</h2>
-            <p>Hover to take off. Click for dimensions, downloads and comparisons.</p>
-          </div>
+          <h2>Catalogue</h2>
+          <p>Grouped by family. Hover to take off; open a type for dimensions, variants, liveries and SVG export.</p>
         </div>
         <Gallery aircraft={AIRCRAFT} />
       </section>

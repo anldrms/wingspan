@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAircraft } from "@/lib/aircraft";
+import { getLivery, LIVERY_BY_SLUG } from "@/lib/liveries";
 import { aircraftToSvg } from "@/lib/svg";
 
 // Rendered on demand (query params pick colours/size); CDN-cached for a year via Cache-Control.
@@ -14,8 +15,12 @@ function color(v: string | null, fallback: string): string {
 }
 
 /**
- * GET /api/svg/:slug?primary=0f172a&secondary=64748b&width=512&download=1
- * Returns a standalone two-tone SVG of the aircraft.
+ * GET /api/svg/:slug
+ *   ?livery=turkish-airlines        colour preset (see /liveries)
+ *   ?primary=0f172a&secondary=64748b&accent=c8102e   explicit colours (override the livery)
+ *   ?outline=1                      hairline outline (for light liveries on light backgrounds)
+ *   ?width=512                      pixel width
+ *   ?download=1                     Content-Disposition: attachment
  */
 export async function GET(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -23,10 +28,17 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
   if (!a) return new NextResponse("Not found", { status: 404 });
 
   const url = new URL(req.url);
-  const width = Math.min(4096, Math.max(16, Number(url.searchParams.get("width")) || 512));
+  const q = url.searchParams;
+  const liverySlug = q.get("livery");
+  if (liverySlug && !LIVERY_BY_SLUG[liverySlug]) return new NextResponse("Unknown livery", { status: 400 });
+  const livery = getLivery(liverySlug);
+
+  const width = Math.min(4096, Math.max(16, Number(q.get("width")) || 512));
   const svg = aircraftToSvg(a, {
-    primary: color(url.searchParams.get("primary"), "#0f172a"),
-    secondary: color(url.searchParams.get("secondary"), "#64748b"),
+    primary: color(q.get("primary"), livery.primary),
+    secondary: color(q.get("secondary"), livery.secondary),
+    accent: color(q.get("accent"), livery.accent),
+    outline: q.get("outline") ? color(q.get("outline") === "1" ? null : q.get("outline"), "#0f172a") : undefined,
     width,
   });
 
@@ -35,8 +47,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
     "Cache-Control": "public, max-age=86400, s-maxage=31536000, immutable",
     "Access-Control-Allow-Origin": "*",
   };
-  if (url.searchParams.get("download")) {
-    headers["Content-Disposition"] = `attachment; filename="wingspan-${a.slug}.svg"`;
+  if (q.get("download")) {
+    headers["Content-Disposition"] = `attachment; filename="wingspan-${a.slug}${liverySlug ? `-${liverySlug}` : ""}.svg"`;
   }
   return new NextResponse(svg, { headers });
 }

@@ -73,14 +73,20 @@ export interface Geometry {
   stab: StabSpec;
   /** Up to MAX_ENGINES per side. Missing slots are hidden. */
   engines: EngineSpec[];
+  /** Vertical wing position — only matters for the 3D view. Default "low". */
+  wingPos?: "low" | "mid" | "high";
+  /** Tail configuration — only matters for the 3D view. Default "conventional". */
+  tail?: "conventional" | "t" | "cruciform";
 }
 
 /** A silhouette is a list of closed polygons plus its bounding box. */
 export interface Silhouette {
   /** Polygons drawn in the primary tone (fuselage). */
   primary: Pt[][];
-  /** Polygons drawn in the secondary tone (wings, stabiliser, engines). */
+  /** Polygons drawn in the secondary tone (wings, engines). */
   secondary: Pt[][];
+  /** Polygons drawn in the accent tone (horizontal stabiliser — the "tail" of a livery). */
+  accent: Pt[][];
   wingspan: number;
   length: number;
 }
@@ -265,14 +271,8 @@ function enginePolygons(g: Geometry, mirror: boolean): Pt[][] {
 export function buildSilhouette(g: Geometry): Silhouette {
   return {
     primary: [fuselagePolygon(g)],
-    secondary: [
-      wingPolygon(g, false),
-      wingPolygon(g, true),
-      stabPolygon(g, false),
-      stabPolygon(g, true),
-      ...enginePolygons(g, false),
-      ...enginePolygons(g, true),
-    ],
+    secondary: [wingPolygon(g, false), wingPolygon(g, true), ...enginePolygons(g, false), ...enginePolygons(g, true)],
+    accent: [stabPolygon(g, false), stabPolygon(g, true)],
     wingspan: g.wingspan,
     length: g.length,
   };
@@ -293,6 +293,7 @@ export function morph(a: Silhouette, b: Silhouette, t: number): Silhouette {
   return {
     primary: lerpPolys(a.primary, b.primary, t),
     secondary: lerpPolys(a.secondary, b.secondary, t),
+    accent: lerpPolys(a.accent, b.accent, t),
     wingspan: lerp(a.wingspan, b.wingspan, t),
     length: lerp(a.length, b.length, t),
   };
