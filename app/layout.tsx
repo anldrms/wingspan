@@ -3,6 +3,7 @@ import "./globals.css";
 import Nav from "@/components/Nav";
 import { AIRCRAFT, FAMILIES } from "@/lib/aircraft";
 import { siteUrl } from "@/lib/site";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: {
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <a href="/api/svg/a380?livery=turkish-airlines">SVG API</a> · <a href="/liveries">Liveries</a> · <a href="/compare">Compare</a>
           </span>
         </footer>
+        <Analytics />
       </body>
     </html>
   );
